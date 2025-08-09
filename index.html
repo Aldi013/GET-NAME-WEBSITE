@@ -5,178 +5,167 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Upload Foto Telegram WebApp</title>
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        text-align: center;
-        margin: 40px 20px;
-        background: #f9f9f9;
-        color: #222;
-    }
-    .header {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-bottom: 30px;
-    }
-    .logo-home {
-        font-size: 50px;
-        color: #0088cc;
-    }
-    .menu-buttons {
-        margin-top: 15px;
-        display: flex;
-        justify-content: center;
-        gap: 15px;
-    }
-    button {
-        padding: 12px 24px;
-        font-size: 16px;
-        background-color: #0088cc;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: background-color 0.3s ease;
-    }
-    button:hover {
-        background-color: #006699;
-    }
-    #fotoPreview {
-        margin-top: 30px;
-        max-width: 90vw;
-        max-height: 60vh;
-        border-radius: 12px;
-        box-shadow: 0 0 12px rgba(0,0,0,0.1);
-        object-fit: contain;
-        transform: none !important;
-    }
-    #message {
-        margin-top: 20px;
-        color: #cc0000;
-        font-weight: bold;
-    }
+  body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 40px 20px;
+      background: #f9f9f9;
+      color: #222;
+  }
+  .header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 30px;
+  }
+  .logo-home {
+      font-size: 50px;
+      color: #0088cc;
+  }
+  .menu-buttons {
+      margin-top: 15px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+  }
+  button {
+      padding: 12px 24px;
+      font-size: 16px;
+      background-color: #0088cc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background-color 0.3s ease;
+  }
+  button:hover {
+      background-color: #006699;
+  }
+  #fotoPreview {
+      margin-top: 30px;
+      max-width: 90vw;
+      max-height: 60vh;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      object-fit: contain;
+  }
+  #message {
+      margin-top: 20px;
+      color: #cc0000;
+      font-weight: bold;
+  }
 </style>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
 <div class="header">
-    <div class="logo-home" title="Logo Rumah">🏠</div>
-    <div class="menu-buttons" id="menuButtons"></div>
+  <div class="logo-home" title="Logo Rumah">🏠</div>
+  <div class="menu-buttons" id="menuButtons"></div>
 </div>
 
 <div id="content">
-    <p>Memeriksa akses...</p>
+  <p>Memeriksa akses...</p>
 </div>
 
 <script>
-    const tg = window.Telegram.WebApp;
-    const allowedUserId = 7998861975;
-    const localStorageKey = 'uploadedImageBase64';
-    let uploadedImageSrc = null;
+  const tg = window.Telegram.WebApp;
+  const allowedUserId = 7998861975;
+  const localStorageKey = 'sharedUploadUrl';
+  let uploadedImageSrc = null;
 
-    function init() {
-        let user = tg.initDataUnsafe.user;
+  function init() {
+      const user = tg.initDataUnsafe.user;
 
-        if (!user) {
-            document.getElementById('content').innerHTML = '<p>Gagal mendapatkan data user Telegram.</p>';
-            return;
-        }
+      if (!user) {
+          document.getElementById('content').innerHTML = '<p>Gagal mendapatkan data user Telegram.</p>';
+          return;
+      }
 
-        // Cek apakah ada gambar tersimpan di localStorage
-        const savedImage = localStorage.getItem(localStorageKey);
-        if (savedImage) {
-            uploadedImageSrc = savedImage;
-        }
+      // Ambil foto dari localStorage
+      const savedImage = localStorage.getItem(localStorageKey);
+      if (savedImage) {
+          uploadedImageSrc = savedImage;
+      }
 
-        setupMenu(user.id);
+      setupMenu(user.id);
 
-        if (user.id === allowedUserId) {
-            showUploadUI();
-        } else {
-            if (!uploadedImageSrc) {
-                document.getElementById('content').innerHTML = '<p id="message">Maaf, Anda tidak memiliki izin untuk upload foto.</p>';
-            } else {
-                // Kalau ada gambar tersimpan dan user bukan pemilik, tetap tampilkan gambar
-                showMainMenu();
-            }
-        }
-    }
+      // Langsung tampilkan menu utama (termasuk foto jika ada)
+      showMainMenu();
+  }
 
-    function setupMenu(userId) {
-        const menuDiv = document.getElementById('menuButtons');
-        menuDiv.innerHTML = '';
+  function setupMenu(userId) {
+      const menuDiv = document.getElementById('menuButtons');
+      menuDiv.innerHTML = '';
 
-        const mainBtn = document.createElement('button');
-        mainBtn.textContent = 'MENU UTAMA';
-        mainBtn.onclick = () => {
-            showMainMenu();
-        };
-        menuDiv.appendChild(mainBtn);
+      // Tombol Menu Utama
+      const mainBtn = document.createElement('button');
+      mainBtn.textContent = 'MENU UTAMA';
+      mainBtn.onclick = () => showMainMenu();
+      menuDiv.appendChild(mainBtn);
 
-        if (userId === allowedUserId) {
-            const uploadBtn = document.createElement('button');
-            uploadBtn.innerHTML = '🔄 UPLOAD';
-            uploadBtn.id = 'uploadBtn';
-            uploadBtn.onclick = () => {
-                document.getElementById('fileInput').click();
-            };
-            menuDiv.appendChild(uploadBtn);
-        }
-    }
+      // Tombol Upload hanya untuk owner
+      if (userId === allowedUserId) {
+          const uploadBtn = document.createElement('button');
+          uploadBtn.innerHTML = '🔄 UPLOAD';
+          uploadBtn.id = 'uploadBtn';
+          uploadBtn.onclick = () => document.getElementById('fileInput').click();
+          menuDiv.appendChild(uploadBtn);
+      }
+  }
 
-    function showUploadUI() {
-        if (!document.getElementById('fileInput')) {
-            const fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.accept = 'image/*';
-            fileInput.id = 'fileInput';
-            fileInput.style.display = 'none';
-            fileInput.addEventListener('change', handleFileChange);
-            document.body.appendChild(fileInput);
-        }
+  function showMainMenu() {
+      const content = document.getElementById('content');
+      let html = `<h2>Selamat datang di Menu Utama</h2>`;
 
-        document.getElementById('content').innerHTML = '';
-    }
+      if (uploadedImageSrc) {
+          html += `
+            <p>Foto yang sudah diupload owner:</p>
+            <img id="fotoPreview" src="${uploadedImageSrc}" alt="Foto Upload" />
+          `;
+      } else {
+          html += `<p>Belum ada foto yang diupload.</p>`;
+      }
 
-    function handleFileChange(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+      content.innerHTML = html;
+  }
 
-        if (!file.type.startsWith('image/')) {
-            alert('Mohon pilih file gambar!');
-            return;
-        }
+  function handleFileChange(event) {
+      const file = event.target.files[0];
+      if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            uploadedImageSrc = e.target.result;
-            // Simpan ke localStorage
-            localStorage.setItem(localStorageKey, uploadedImageSrc);
-            showMainMenu();
-        };
-        reader.readAsDataURL(file);
-    }
+      if (!file.type.startsWith('image/')) {
+          alert('Mohon pilih file gambar!');
+          return;
+      }
 
-    function showMainMenu() {
-        const content = document.getElementById('content');
+      const reader = new FileReader();
+      reader.onload = function (e) {
+          uploadedImageSrc = e.target.result;
+          // Simpan foto di localStorage dengan key global agar bisa dilihat semua user
+          localStorage.setItem(localStorageKey, uploadedImageSrc);
+          showMainMenu();
+      };
+      reader.readAsDataURL(file);
+  }
 
-        let html = `<h2>Selamat datang di Menu Utama</h2>`;
+  window.onload = function () {
+      init();
 
-        if (uploadedImageSrc) {
-            html += `<p>Foto yang Anda upload:</p>
-                     <img id="fotoPreview" src="${uploadedImageSrc}" alt="Foto Upload" />`;
-        } else {
-            html += `<p>Belum ada foto yang diupload.</p>`;
-        }
-
-        content.innerHTML = html;
-    }
-
-    window.onload = init;
+      // Buat input file hidden untuk upload foto owner
+      if (!document.getElementById('fileInput')) {
+          const fileInput = document.createElement('input');
+          fileInput.type = 'file';
+          fileInput.accept = 'image/*';
+          fileInput.id = 'fileInput';
+          fileInput.style.display = 'none';
+          fileInput.addEventListener('change', handleFileChange);
+          document.body.appendChild(fileInput);
+      }
+  }
 </script>
 
 </body>
