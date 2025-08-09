@@ -1,19 +1,114 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cek Nama Telegram</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Library Telegram WebApp -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Upload Foto Telegram WebApp</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 40px;
+            background: #f9f9f9;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: #0088cc;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #006699;
+        }
+        #fotoPreview {
+            margin-top: 30px;
+            max-width: 90vw;
+            max-height: 60vh;
+            border-radius: 12px;
+            box-shadow: 0 0 12px rgba(0,0,0,0.1);
+        }
+        #message {
+            margin-top: 20px;
+            color: #cc0000;
+            font-weight: bold;
+        }
+    </style>
+    <!-- Telegram WebApp JS -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <h1>🏆 Cek Nama Telegram</h1>
-    <p>Klik tombol di bawah untuk melihat nama dan ID Anda</p>
-    <button id="cekNama">CEK NAMA</button>
-    <p id="hasil"></p>
+    <h1>Upload Foto (Hanya untuk User Terpilih)</h1>
+    <div id="content">
+        <p>Memeriksa akses...</p>
+    </div>
 
-    <script src="script.js"></script>
+    <script>
+        // Telegram WebApp object
+        const tg = window.Telegram.WebApp;
+
+        // User ID yang diizinkan upload
+        const allowedUserId = 7998861975;
+
+        // Fungsi inisialisasi
+        function init() {
+            let user = tg.initDataUnsafe.user;
+
+            if (!user) {
+                document.getElementById('content').innerHTML = '<p>Gagal mendapatkan data user Telegram.</p>';
+                return;
+            }
+
+            // Cek user ID
+            if (user.id === allowedUserId) {
+                showUpload();
+            } else {
+                document.getElementById('content').innerHTML = '<p id="message">Maaf, Anda tidak memiliki izin untuk upload foto.</p>';
+            }
+        }
+
+        // Tampilkan tombol upload dan area preview
+        function showUpload() {
+            document.getElementById('content').innerHTML = `
+                <p>Halo, <strong>${tg.initDataUnsafe.user.first_name}</strong>! Silakan upload foto dari galeri:</p>
+                <input type="file" id="fileInput" accept="image/*" style="display:none" />
+                <button id="uploadBtn">Pilih Foto dari Galeri</button>
+                <br />
+                <img id="fotoPreview" src="" alt="Preview Foto" style="display:none" />
+            `;
+
+            const fileInput = document.getElementById('fileInput');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const fotoPreview = document.getElementById('fotoPreview');
+
+            uploadBtn.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', () => {
+                const file = fileInput.files[0];
+                if (!file) return;
+
+                if (!file.type.startsWith('image/')) {
+                    alert('Mohon pilih file gambar!');
+                    return;
+                }
+
+                // Buat URL preview
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    fotoPreview.src = e.target.result;
+                    fotoPreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Inisialisasi saat halaman siap
+        window.onload = init;
+    </script>
 </body>
 </html>
