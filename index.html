@@ -1,172 +1,373 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Upload Foto Telegram WebApp</title>
-<style>
-  body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 40px 20px;
-      background: #f9f9f9;
-      color: #222;
-  }
-  .header {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 30px;
-  }
-  .logo-home {
-      font-size: 50px;
-      color: #0088cc;
-  }
-  .menu-buttons {
-      margin-top: 15px;
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-  }
-  button {
-      padding: 12px 24px;
-      font-size: 16px;
-      background-color: #0088cc;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: background-color 0.3s ease;
-  }
-  button:hover {
-      background-color: #006699;
-  }
-  #fotoPreview {
-      margin-top: 30px;
-      max-width: 90vw;
-      max-height: 60vh;
-      border-radius: 12px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.1);
-      object-fit: contain;
-  }
-  #message {
-      margin-top: 20px;
-      color: #cc0000;
-      font-weight: bold;
-  }
-</style>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Store</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
 </head>
-<body>
+<body class="bg-[#181818] text-white min-h-screen flex flex-col">
 
-<div class="header">
-  <div class="logo-home" title="Logo Rumah">🏠</div>
-  <div class="menu-buttons" id="menuButtons"></div>
-</div>
+  <div class="p-4">
+    <div class="relative">
+      <input
+        class="w-full rounded-2xl bg-[#222222] placeholder-[#666666] text-[#999999] font-semibold pl-11 pr-4 py-3 focus:outline-none"
+        placeholder="Search by ID"
+        type="text"
+      />
+      <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-[#666666] text-lg"></i>
+    </div>
+  </div>
 
-<div id="content">
-  <p>Memeriksa akses...</p>
-</div>
+  <main class="flex-1 px-4 pb-24">
+    <div class="grid grid-cols-2 gap-4">
+      <!-- Produk nya -->
+      
+      <div class="bg-[#222222] rounded-2xl overflow-hidden">
+        <a href="https://t.me/nft/PartySparkler-12462" target="_blank" rel="noopener noreferrer">
+          <img
+            alt="Partysparkler icon on teal background with subtle pattern"
+            class="w-full rounded-t-2xl cursor-pointer"
+            height="300"
+            src="https://i.imgur.com/yb9X0Gw.jpeg"
+            width="300"
+          />
+        </a>
+        <div class="p-4">
+          <h2 class="font-semibold text-xl leading-tight">Partysparkler</h2>
+          <p class="text-[#666666] mt-1 text-sm font-normal">#12462</p>
+          <div class="mt-4 flex items-center gap-x-2 max-w-full">
+            <button
+              class="flex-shrink-0 flex items-center bg-[#1e90ff] rounded-full px-1.5 py-0.5 text-white font-semibold text-xs gap-1 justify-center min-w-[45px]"
+            >
+              <i class="fas fa-gem text-[10px]"></i> 4
+            </button>
+            <div
+              class="flex-1 bg-[#1e90ff] rounded-full px-2 py-0.5 text-white font-semibold text-xs text-center truncate"
+            >
+              Rp250.000
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-[#222222] rounded-2xl overflow-hidden">
+        <a href="https://t.me/nft/EasterEgg-118661" target="_blank" rel="noopener noreferrer">
+          <img
+            alt="Easteregg icon on teal background with subtle pattern"
+            class="w-full rounded-t-2xl cursor-pointer"
+            height="300"
+            src="https://i.imgur.com/p9rD20L.jpeg"
+            width="300"
+          />
+        </a>
+        <div class="p-4">
+          <h2 class="font-semibold text-xl leading-tight">Easteregg</h2>
+          <p class="text-[#666666] mt-1 text-sm font-normal">#118661</p>
+          <div class="mt-4 flex items-center gap-x-2 max-w-full">
+            <button
+              class="flex-shrink-0 flex items-center bg-[#1e90ff] rounded-full px-1.5 py-0.5 text-white font-semibold text-xs gap-1 justify-center min-w-[45px]"
+            >
+              <i class="fas fa-gem text-[10px]"></i> 6
+            </button>
+            <div
+              class="flex-1 bg-[#1e90ff] rounded-full px-2 py-0.5 text-white font-semibold text-xs text-center truncate"
+            >
+              Rp330.000
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-[#222222] rounded-2xl overflow-hidden">
+        <a href="https://t.me/nft/XmasStocking-15764" target="_blank" rel="noopener noreferrer">
+          <img
+            alt="Xmasstocking icon on teal background with subtle pattern"
+            class="w-full rounded-t-2xl cursor-pointer"
+            height="300"
+            src="https://i.imgur.com/ANrvy9D.jpeg"
+            width="300"
+          />
+        </a>
+        <div class="p-4">
+          <h2 class="font-semibold text-xl leading-tight">Xmasstocking</h2>
+          <p class="text-[#666666] mt-1 text-sm font-normal">#15764</p>
+          <div class="mt-4 flex items-center gap-x-2 max-w-full">
+            <button
+              class="flex-shrink-0 flex items-center bg-[#1e90ff] rounded-full px-1.5 py-0.5 text-white font-semibold text-xs gap-1 justify-center min-w-[45px]"
+            >
+              <i class="fas fa-gem text-[10px]"></i> 2.5
+            </button>
+            <div
+              class="flex-1 bg-[#1e90ff] rounded-full px-2 py-0.5 text-white font-semibold text-xs text-center truncate"
+            >
+              Rp150.000
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-[#222222] rounded-2xl overflow-hidden">
+        <a href="https://t.me/nft/JackInTheBox-75678" target="_blank" rel="noopener noreferrer">
+          <img
+            alt="Jackinthebox icon on teal background with subtle pattern"
+            class="w-full rounded-t-2xl cursor-pointer"
+            height="300"
+            src="https://i.imgur.com/YIswPBH.jpeg"
+            width="300"
+          />
+        </a>
+        <div class="p-4">
+          <h2 class="font-semibold text-xl leading-tight">Jackinthebox</h2>
+          <p class="text-[#666666] mt-1 text-sm font-normal">#75678</p>
+          <div class="mt-4 flex items-center gap-x-2 max-w-full">
+            <button
+              class="flex-shrink-0 flex items-center bg-[#1e90ff] rounded-full px-1.5 py-0.5 text-white font-semibold text-xs gap-1 justify-center min-w-[45px]"
+            >
+              <i class="fas fa-gem text-[10px]"></i> 3
+            </button>
+            <div
+              class="flex-1 bg-[#1e90ff] rounded-full px-2 py-0.5 text-white font-semibold text-xs text-center truncate"
+            >
+              Rp150.000
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-[#222222] rounded-2xl overflow-hidden">
+        <a href="https://t.me/nft/SnoopCigar-19318" target="_blank" rel="noopener noreferrer">
+          <img
+            alt="Snoopcigar icon on teal background with subtle pattern"
+            class="w-full rounded-t-2xl cursor-pointer"
+            height="300"
+            src="https://i.imgur.com/nvVkwgr.jpeg"
+            width="300"
+          />
+        </a>
+        <div class="p-4">
+          <h2 class="font-semibold text-xl leading-tight">Snoopcigar</h2>
+          <p class="text-[#666666] mt-1 text-sm font-normal">#19318</p>
+          <div class="mt-4 flex items-center gap-x-2 max-w-full">
+            <button
+              class="flex-shrink-0 flex items-center bg-[#1e90ff] rounded-full px-1.5 py-0.5 text-white font-semibold text-xs gap-1 justify-center min-w-[45px]"
+            >
+              <i class="fas fa-gem text-[10px]"></i> 8
+            </button>
+            <div
+              class="flex-1 bg-[#1e90ff] rounded-full px-2 py-0.5 text-white font-semibold text-xs text-center truncate"
+            >
+              Rp450.000
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-[#222222] rounded-2xl overflow-hidden">
+        <a href="https://t.me/nft/SnoopCigar-61759" target="_blank" rel="noopener noreferrer">
+          <img
+            alt="Snoopcigar icon on teal background with subtle pattern"
+            class="w-full rounded-t-2xl cursor-pointer"
+            height="300"
+            src="https://i.imgur.com/nGRmOlL.jpeg"
+            width="300"
+          />
+        </a>
+        <div class="p-4">
+          <h2 class="font-semibold text-xl leading-tight">Snoopcigar</h2>
+          <p class="text-[#666666] mt-1 text-sm font-normal">#61759</p>
+          <div class="mt-4 flex items-center gap-x-2 max-w-full">
+            <button
+              class="flex-shrink-0 flex items-center bg-[#1e90ff] rounded-full px-1.5 py-0.5 text-white font-semibold text-xs gap-1 justify-center min-w-[45px]"
+            >
+              <i class="fas fa-gem text-[10px]"></i> 7
+            </button>
+            <div
+              class="flex-1 bg-[#1e90ff] rounded-full px-2 py-0.5 text-white font-semibold text-xs text-center truncate"
+            >
+              Rp400.000
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-[#222222] rounded-2xl overflow-hidden">
+        <a href="https://t.me/nft/XmasStocking-10963" target="_blank" rel="noopener noreferrer">
+          <img
+            alt="Xmasstocking icon on teal background with subtle pattern"
+            class="w-full rounded-t-2xl cursor-pointer"
+            height="300"
+            src="https://i.imgur.com/h8OsUOw.jpeg"
+            width="300"
+          />
+        </a>
+        <div class="p-4">
+          <h2 class="font-semibold text-xl leading-tight">Xmasstocking</h2>
+          <p class="text-[#666666] mt-1 text-sm font-normal">#10963</p>
+          <div class="mt-4 flex items-center gap-x-2 max-w-full">
+            <button
+              class="flex-shrink-0 flex items-center bg-[#1e90ff] rounded-full px-1.5 py-0.5 text-white font-semibold text-xs gap-1 justify-center min-w-[45px]"
+            >
+              <i class="fas fa-gem text-[10px]"></i> 11
+            </button>
+            <div
+              class="flex-1 bg-[#1e90ff] rounded-full px-2 py-0.5 text-white font-semibold text-xs text-center truncate"
+            >
+              Rp600.000
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-[#222222] rounded-2xl overflow-hidden">
+        <a href="https://t.me/nft/BowTie-35885" target="_blank" rel="noopener noreferrer">
+          <img
+            alt="Bowtie icon on teal background with subtle pattern"
+            class="w-full rounded-t-2xl cursor-pointer"
+            height="300"
+            src="https://i.imgur.com/HD3ElNA.jpeg"
+            width="300"
+          />
+        </a>
+        <div class="p-4">
+          <h2 class="font-semibold text-xl leading-tight">Bowtie</h2>
+          <p class="text-[#666666] mt-1 text-sm font-normal">#35885</p>
+          <div class="mt-4 flex items-center gap-x-2 max-w-full">
+            <button
+              class="flex-shrink-0 flex items-center bg-[#1e90ff] rounded-full px-1.5 py-0.5 text-white font-semibold text-xs gap-1 justify-center min-w-[45px]"
+            >
+              <i class="fas fa-gem text-[10px]"></i> 15
+            </button>
+            <div
+              class="flex-1 bg-[#1e90ff] rounded-full px-2 py-0.5 text-white font-semibold text-xs text-center truncate"
+            >
+              Rp830.000
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-[#222222] rounded-2xl overflow-hidden">
+        <a href="https://t.me/nft/JoyfulBundle-6334" target="_blank" rel="noopener noreferrer">
+          <img
+            alt="Joyfulbundle icon on teal background with subtle pattern"
+            class="w-full rounded-t-2xl cursor-pointer"
+            height="300"
+            src="https://i.imgur.com/DfDpkbT.jpeg"
+            width="300"
+          />
+        </a>
+        <div class="p-4">
+          <h2 class="font-semibold text-xl leading-tight">Joyfulbundle</h2>
+          <p class="text-[#666666] mt-1 text-sm font-normal">#6334</p>
+          <div class="mt-4 flex items-center gap-x-2 max-w-full">
+            <button
+              class="flex-shrink-0 flex items-center bg-[#1e90ff] rounded-full px-1.5 py-0.5 text-white font-semibold text-xs gap-1 justify-center min-w-[45px]"
+            >
+              <i class="fas fa-gem text-[10px]"></i> 25
+            </button>
+            <div
+              class="flex-1 bg-[#1e90ff] rounded-full px-2 py-0.5 text-white font-semibold text-xs text-center truncate"
+            >
+              Rp1.380.000
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-[#222222] rounded-2xl overflow-hidden">
+        <a href="https://t.me/nft/SwissWatch-17848" target="_blank" rel="noopener noreferrer">
+          <img
+            alt="Swisswatch icon on teal background with subtle pattern"
+            class="w-full rounded-t-2xl cursor-pointer"
+            height="300"
+            src="https://i.imgur.com/cMvBF3s.jpeg"
+            width="300"
+          />
+        </a>
+        <div class="p-4">
+          <h2 class="font-semibold text-xl leading-tight">Swisswatch</h2>
+          <p class="text-[#666666] mt-1 text-sm font-normal">#17848</p>
+          <div class="mt-4 flex items-center gap-x-2 max-w-full">
+            <button
+              class="flex-shrink-0 flex items-center bg-[#1e90ff] rounded-full px-1.5 py-0.5 text-white font-semibold text-xs gap-1 justify-center min-w-[45px]"
+            >
+              <i class="fas fa-gem text-[10px]"></i> 50
+            </button>
+            <div
+              class="flex-1 bg-[#1e90ff] rounded-full px-2 py-0.5 text-white font-semibold text-xs text-center truncate"
+            >
+              Rp2.760.000
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-[#222222] rounded-2xl overflow-hidden">
+        <a href="https://t.me/nft/XmasStocking-44797" target="_blank" rel="noopener noreferrer">
+          <img
+            alt="Xmasstocking icon on teal background with subtle pattern"
+            class="w-full rounded-t-2xl cursor-pointer"
+            height="300"
+            src="https://i.imgur.com/a7wBchX.jpeg"
+            width="300"
+          />
+        </a>
+        <div class="p-4">
+          <h2 class="font-semibold text-xl leading-tight">Xmasstocking</h2>
+          <p class="text-[#666666] mt-1 text-sm font-normal">#44797</p>
+          <div class="mt-4 flex items-center gap-x-2 max-w-full">
+            <button
+              class="flex-shrink-0 flex items-center bg-[#1e90ff] rounded-full px-1.5 py-0.5 text-white font-semibold text-xs gap-1 justify-center min-w-[45px]"
+            >
+              <i class="fas fa-gem text-[10px]"></i> 4
+            </button>
+            <div
+              class="flex-1 bg-[#1e90ff] rounded-full px-2 py-0.5 text-white font-semibold text-xs text-center truncate"
+            >
+              Rp220.000
+            </div>
+          </div>
+        </div>
+      </div>
 
-<script>
-  const tg = window.Telegram.WebApp;
-  const allowedUserId = 7998861975;
-  const localStorageKey = 'sharedUploadUrl';
-  let uploadedImageSrc = null;
+      <!-- Card 1 -->
+      <div class="bg-[#222222] rounded-2xl overflow-hidden">
+        <a href="https://t.me/nft/PartySparkler-71399" target="_blank" rel="noopener noreferrer">
+          <img
+            alt="Santa Hat icon on teal background with subtle pattern"
+            class="w-full rounded-t-2xl cursor-pointer"
+            height="300"
+            src="https://i.imgur.com/QPXeo13.jpeg"
+            width="300"
+          />
+        </a>
+        <div class="p-4">
+          <h2 class="font-semibold text-xl leading-tight">Party Sparkler</h2>
+          <p class="text-[#666666] mt-1 text-sm font-normal">#71399</p>
+          <div class="mt-4 flex items-center gap-x-2 max-w-full">
+            <button
+              class="flex-shrink-0 flex items-center bg-[#1e90ff] rounded-full px-1.5 py-0.5 text-white font-semibold text-xs gap-1 justify-center min-w-[45px]"
+            >
+              <i class="fas fa-gem text-[10px]"></i> 3
+            </button>
+            <div
+              class="flex-1 bg-[#1e90ff] rounded-full px-2 py-0.5 text-white font-semibold text-xs text-center truncate"
+            >
+              Rp70.000
+            </div>
+          </div>
+        </div>
+      </div>
 
-  function init() {
-      const user = tg.initDataUnsafe.user;
+    </div>
+  </main>
 
-      if (!user) {
-          document.getElementById('content').innerHTML = '<p>Gagal mendapatkan data user Telegram.</p>';
-          return;
-      }
-
-      // Ambil foto dari localStorage
-      const savedImage = localStorage.getItem(localStorageKey);
-      if (savedImage) {
-          uploadedImageSrc = savedImage;
-      }
-
-      setupMenu(user.id);
-
-      // Langsung tampilkan menu utama (termasuk foto jika ada)
-      showMainMenu();
-  }
-
-  function setupMenu(userId) {
-      const menuDiv = document.getElementById('menuButtons');
-      menuDiv.innerHTML = '';
-
-      // Tombol Menu Utama
-      const mainBtn = document.createElement('button');
-      mainBtn.textContent = 'MENU UTAMA';
-      mainBtn.onclick = () => showMainMenu();
-      menuDiv.appendChild(mainBtn);
-
-      // Tombol Upload hanya untuk owner
-      if (userId === allowedUserId) {
-          const uploadBtn = document.createElement('button');
-          uploadBtn.innerHTML = '🔄 UPLOAD';
-          uploadBtn.id = 'uploadBtn';
-          uploadBtn.onclick = () => document.getElementById('fileInput').click();
-          menuDiv.appendChild(uploadBtn);
-      }
-  }
-
-  function showMainMenu() {
-      const content = document.getElementById('content');
-      let html = `<h2>Selamat datang di Menu Utama</h2>`;
-
-      if (uploadedImageSrc) {
-          html += `
-            <p>Foto yang sudah diupload owner:</p>
-            <img id="fotoPreview" src="${uploadedImageSrc}" alt="Foto Upload" />
-          `;
-      } else {
-          html += `<p>Belum ada foto yang diupload.</p>`;
-      }
-
-      content.innerHTML = html;
-  }
-
-  function handleFileChange(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      if (!file.type.startsWith('image/')) {
-          alert('Mohon pilih file gambar!');
-          return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = function (e) {
-          uploadedImageSrc = e.target.result;
-          // Simpan foto di localStorage dengan key global agar bisa dilihat semua user
-          localStorage.setItem(localStorageKey, uploadedImageSrc);
-          showMainMenu();
-      };
-      reader.readAsDataURL(file);
-  }
-
-  window.onload = function () {
-      init();
-
-      // Buat input file hidden untuk upload foto owner
-      if (!document.getElementById('fileInput')) {
-          const fileInput = document.createElement('input');
-          fileInput.type = 'file';
-          fileInput.accept = 'image/*';
-          fileInput.id = 'fileInput';
-          fileInput.style.display = 'none';
-          fileInput.addEventListener('change', handleFileChange);
-          document.body.appendChild(fileInput);
-      }
-  }
-</script>
+  <nav
+    class="fixed bottom-0 left-0 w-full bg-[#222f2f] border-t border-t-[#1a1a1a] flex justify-center items-center py-4 text-[#666666]"
+  >
+    <div class="text-center text-white font-semibold text-lg select-none">
+      💬 ORDER TO @MULQES OR @FCOLI
+    </div>
+  </nav>
 
 </body>
 </html>
