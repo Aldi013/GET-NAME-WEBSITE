@@ -51,7 +51,6 @@
         border-radius: 12px;
         box-shadow: 0 0 12px rgba(0,0,0,0.1);
         object-fit: contain;
-        /* pastikan gambar tidak miring */
         transform: none !important;
     }
     #message {
@@ -60,16 +59,13 @@
         font-weight: bold;
     }
 </style>
-<!-- Telegram WebApp JS -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
 
 <div class="header">
     <div class="logo-home" title="Logo Rumah">🏠</div>
-    <div class="menu-buttons" id="menuButtons">
-        <!-- Tombol menu utama dan upload akan muncul di sini -->
-    </div>
+    <div class="menu-buttons" id="menuButtons"></div>
 </div>
 
 <div id="content">
@@ -79,6 +75,7 @@
 <script>
     const tg = window.Telegram.WebApp;
     const allowedUserId = 7998861975;
+    const localStorageKey = 'uploadedImageBase64';
     let uploadedImageSrc = null;
 
     function init() {
@@ -89,12 +86,23 @@
             return;
         }
 
+        // Cek apakah ada gambar tersimpan di localStorage
+        const savedImage = localStorage.getItem(localStorageKey);
+        if (savedImage) {
+            uploadedImageSrc = savedImage;
+        }
+
         setupMenu(user.id);
 
         if (user.id === allowedUserId) {
             showUploadUI();
         } else {
-            document.getElementById('content').innerHTML = '<p id="message">Maaf, Anda tidak memiliki izin untuk upload foto.</p>';
+            if (!uploadedImageSrc) {
+                document.getElementById('content').innerHTML = '<p id="message">Maaf, Anda tidak memiliki izin untuk upload foto.</p>';
+            } else {
+                // Kalau ada gambar tersimpan dan user bukan pemilik, tetap tampilkan gambar
+                showMainMenu();
+            }
         }
     }
 
@@ -102,7 +110,6 @@
         const menuDiv = document.getElementById('menuButtons');
         menuDiv.innerHTML = '';
 
-        // Tombol Menu Utama (selalu tampil)
         const mainBtn = document.createElement('button');
         mainBtn.textContent = 'MENU UTAMA';
         mainBtn.onclick = () => {
@@ -110,7 +117,6 @@
         };
         menuDiv.appendChild(mainBtn);
 
-        // Tombol Upload hanya untuk user terpilih
         if (userId === allowedUserId) {
             const uploadBtn = document.createElement('button');
             uploadBtn.innerHTML = '🔄 UPLOAD';
@@ -122,9 +128,7 @@
         }
     }
 
-    // Fungsi tampilkan UI upload file dan preview
     function showUploadUI() {
-        // Buat input file tersembunyi
         if (!document.getElementById('fileInput')) {
             const fileInput = document.createElement('input');
             fileInput.type = 'file';
@@ -135,7 +139,6 @@
             document.body.appendChild(fileInput);
         }
 
-        // Tampilkan pesan info di content (atau kosongkan)
         document.getElementById('content').innerHTML = '';
     }
 
@@ -151,12 +154,13 @@
         const reader = new FileReader();
         reader.onload = function (e) {
             uploadedImageSrc = e.target.result;
+            // Simpan ke localStorage
+            localStorage.setItem(localStorageKey, uploadedImageSrc);
             showMainMenu();
         };
         reader.readAsDataURL(file);
     }
 
-    // Fungsi untuk menampilkan menu utama dan preview hasil upload
     function showMainMenu() {
         const content = document.getElementById('content');
 
