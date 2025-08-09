@@ -1,21 +1,46 @@
-// Ambil objek WebApp dari Telegram
 const tg = window.Telegram.WebApp;
+const allowedUserId = 7998861975;
+let uploadedImageSrc = null;
 
-document.getElementById("cekNama").addEventListener("click", function () {
-    // Ambil data user
-    let userData = tg.initDataUnsafe.user;
+function showUploadUI() {
+    // Kosongkan konten, supaya siap untuk upload (atau bisa tampilkan pesan khusus)
+    document.getElementById('content').innerHTML = '<p>Silakan klik tombol 🔄 UPLOAD untuk pilih foto.</p>';
+}
 
-    // Nama
-    let firstName = (userData && userData.first_name) || "tidak ada nama";
+function showMainMenu() {
+    let content = document.getElementById('content');
+    let html = `<h2>Selamat datang di Menu Utama</h2>`;
 
-    // ID
-    let userId = (userData && userData.id) || "tidak ada id";
+    if (uploadedImageSrc) {
+        html += `
+          <p>Foto yang sudah diupload owner:</p>
+          <img id="fotoPreview" src="${uploadedImageSrc}" alt="Foto Upload" style="max-width:90vw; max-height:60vh; border-radius:12px; object-fit:contain;" />
+        `;
+    } else {
+        html += `<p>Belum ada foto yang diupload.</p>`;
+    }
 
-    // Tampilkan
-    document.getElementById("hasil").innerText = `Nama: ${firstName} | ID: ${userId}`;
-});
+    content.innerHTML = html;
+}
 
-// Ganti handleFileChange jadi simpan di key 'sharedUploadUrl' (bukan user spesifik)
+function setupMenu(userId) {
+    const menuDiv = document.getElementById('menuButtons');
+    menuDiv.innerHTML = '';
+
+    const mainBtn = document.createElement('button');
+    mainBtn.textContent = 'MENU UTAMA';
+    mainBtn.onclick = () => showMainMenu();
+    menuDiv.appendChild(mainBtn);
+
+    if (userId === allowedUserId) {
+        const uploadBtn = document.createElement('button');
+        uploadBtn.innerHTML = '🔄 UPLOAD';
+        uploadBtn.id = 'uploadBtn';
+        uploadBtn.onclick = () => document.getElementById('fileInput').click();
+        menuDiv.appendChild(uploadBtn);
+    }
+}
+
 function handleFileChange(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -28,22 +53,19 @@ function handleFileChange(event) {
     const reader = new FileReader();
     reader.onload = function (e) {
         uploadedImageSrc = e.target.result;
-        // Simpan di shared key supaya semua user browser ini bisa lihat
         localStorage.setItem('sharedUploadUrl', uploadedImageSrc);
         showMainMenu();
     };
     reader.readAsDataURL(file);
 }
 
-// Saat init, baca dari shared key
 function init() {
-    let user = tg.initDataUnsafe.user;
+    const user = tg.initDataUnsafe.user;
     if (!user) {
         document.getElementById('content').innerHTML = '<p>Gagal mendapatkan data user Telegram.</p>';
         return;
     }
 
-    // Ambil gambar dari key umum
     const savedImage = localStorage.getItem('sharedUploadUrl');
     if (savedImage) {
         uploadedImageSrc = savedImage;
@@ -57,3 +79,18 @@ function init() {
         showMainMenu();
     }
 }
+
+// Buat input file hidden sekali waktu load halaman
+window.onload = () => {
+    init();
+
+    if (!document.getElementById('fileInput')) {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.id = 'fileInput';
+        fileInput.style.display = 'none';
+        fileInput.addEventListener('change', handleFileChange);
+        document.body.appendChild(fileInput);
+    }
+};
