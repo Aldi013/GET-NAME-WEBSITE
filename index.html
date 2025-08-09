@@ -1,114 +1,179 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Upload Foto Telegram WebApp</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 40px;
-            background: #f9f9f9;
-        }
-        button {
-            padding: 12px 24px;
-            font-size: 16px;
-            background-color: #0088cc;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-        button:hover {
-            background-color: #006699;
-        }
-        #fotoPreview {
-            margin-top: 30px;
-            max-width: 90vw;
-            max-height: 60vh;
-            border-radius: 12px;
-            box-shadow: 0 0 12px rgba(0,0,0,0.1);
-        }
-        #message {
-            margin-top: 20px;
-            color: #cc0000;
-            font-weight: bold;
-        }
-    </style>
-    <!-- Telegram WebApp JS -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Upload Foto Telegram WebApp</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 40px 20px;
+        background: #f9f9f9;
+        color: #222;
+    }
+    .header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+    .logo-home {
+        font-size: 50px;
+        color: #0088cc;
+    }
+    .menu-buttons {
+        margin-top: 15px;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+    }
+    button {
+        padding: 12px 24px;
+        font-size: 16px;
+        background-color: #0088cc;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background-color 0.3s ease;
+    }
+    button:hover {
+        background-color: #006699;
+    }
+    #fotoPreview {
+        margin-top: 30px;
+        max-width: 90vw;
+        max-height: 60vh;
+        border-radius: 12px;
+        box-shadow: 0 0 12px rgba(0,0,0,0.1);
+        object-fit: contain;
+        /* pastikan gambar tidak miring */
+        transform: none !important;
+    }
+    #message {
+        margin-top: 20px;
+        color: #cc0000;
+        font-weight: bold;
+    }
+</style>
+<!-- Telegram WebApp JS -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
-    <h1>Upload Foto (Hanya untuk User Terpilih)</h1>
-    <div id="content">
-        <p>Memeriksa akses...</p>
+
+<div class="header">
+    <div class="logo-home" title="Logo Rumah">🏠</div>
+    <div class="menu-buttons" id="menuButtons">
+        <!-- Tombol menu utama dan upload akan muncul di sini -->
     </div>
+</div>
 
-    <script>
-        // Telegram WebApp object
-        const tg = window.Telegram.WebApp;
+<div id="content">
+    <p>Memeriksa akses...</p>
+</div>
 
-        // User ID yang diizinkan upload
-        const allowedUserId = 7998861975;
+<script>
+    const tg = window.Telegram.WebApp;
+    const allowedUserId = 7998861975;
+    let uploadedImageSrc = null;
 
-        // Fungsi inisialisasi
-        function init() {
-            let user = tg.initDataUnsafe.user;
+    function init() {
+        let user = tg.initDataUnsafe.user;
 
-            if (!user) {
-                document.getElementById('content').innerHTML = '<p>Gagal mendapatkan data user Telegram.</p>';
-                return;
-            }
-
-            // Cek user ID
-            if (user.id === allowedUserId) {
-                showUpload();
-            } else {
-                document.getElementById('content').innerHTML = '<p id="message">Maaf, Anda tidak memiliki izin untuk upload foto.</p>';
-            }
+        if (!user) {
+            document.getElementById('content').innerHTML = '<p>Gagal mendapatkan data user Telegram.</p>';
+            return;
         }
 
-        // Tampilkan tombol upload dan area preview
-        function showUpload() {
-            document.getElementById('content').innerHTML = `
-                <p>Halo, <strong>${tg.initDataUnsafe.user.first_name}</strong>! Silakan upload foto dari galeri:</p>
-                <input type="file" id="fileInput" accept="image/*" style="display:none" />
-                <button id="uploadBtn">Pilih Foto dari Galeri</button>
-                <br />
-                <img id="fotoPreview" src="" alt="Preview Foto" style="display:none" />
-            `;
+        setupMenu(user.id);
 
-            const fileInput = document.getElementById('fileInput');
-            const uploadBtn = document.getElementById('uploadBtn');
-            const fotoPreview = document.getElementById('fotoPreview');
+        if (user.id === allowedUserId) {
+            showUploadUI();
+        } else {
+            document.getElementById('content').innerHTML = '<p id="message">Maaf, Anda tidak memiliki izin untuk upload foto.</p>';
+        }
+    }
 
-            uploadBtn.addEventListener('click', () => {
-                fileInput.click();
-            });
+    function setupMenu(userId) {
+        const menuDiv = document.getElementById('menuButtons');
+        menuDiv.innerHTML = '';
 
-            fileInput.addEventListener('change', () => {
-                const file = fileInput.files[0];
-                if (!file) return;
+        // Tombol Menu Utama (selalu tampil)
+        const mainBtn = document.createElement('button');
+        mainBtn.textContent = 'MENU UTAMA';
+        mainBtn.onclick = () => {
+            showMainMenu();
+        };
+        menuDiv.appendChild(mainBtn);
 
-                if (!file.type.startsWith('image/')) {
-                    alert('Mohon pilih file gambar!');
-                    return;
-                }
+        // Tombol Upload hanya untuk user terpilih
+        if (userId === allowedUserId) {
+            const uploadBtn = document.createElement('button');
+            uploadBtn.innerHTML = '🔄 UPLOAD';
+            uploadBtn.id = 'uploadBtn';
+            uploadBtn.onclick = () => {
+                document.getElementById('fileInput').click();
+            };
+            menuDiv.appendChild(uploadBtn);
+        }
+    }
 
-                // Buat URL preview
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    fotoPreview.src = e.target.result;
-                    fotoPreview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            });
+    // Fungsi tampilkan UI upload file dan preview
+    function showUploadUI() {
+        // Buat input file tersembunyi
+        if (!document.getElementById('fileInput')) {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.id = 'fileInput';
+            fileInput.style.display = 'none';
+            fileInput.addEventListener('change', handleFileChange);
+            document.body.appendChild(fileInput);
         }
 
-        // Inisialisasi saat halaman siap
-        window.onload = init;
-    </script>
+        // Tampilkan pesan info di content (atau kosongkan)
+        document.getElementById('content').innerHTML = '';
+    }
+
+    function handleFileChange(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert('Mohon pilih file gambar!');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            uploadedImageSrc = e.target.result;
+            showMainMenu();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Fungsi untuk menampilkan menu utama dan preview hasil upload
+    function showMainMenu() {
+        const content = document.getElementById('content');
+
+        let html = `<h2>Selamat datang di Menu Utama</h2>`;
+
+        if (uploadedImageSrc) {
+            html += `<p>Foto yang Anda upload:</p>
+                     <img id="fotoPreview" src="${uploadedImageSrc}" alt="Foto Upload" />`;
+        } else {
+            html += `<p>Belum ada foto yang diupload.</p>`;
+        }
+
+        content.innerHTML = html;
+    }
+
+    window.onload = init;
+</script>
+
 </body>
 </html>
