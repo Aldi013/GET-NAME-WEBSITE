@@ -69,7 +69,7 @@
     <input id="spd" type="range" min="1" max="30" value="8">
   </div>
 
-  <div class="hint">Sentuh/klik layar untuk menggerakkan ular ulat</div>
+  <div class="hint">Sentuh/klik layar atau gerakkan jari di kamera untuk menggerakkan ular ulat</div>
 
 <script>
 (async () => {
@@ -108,7 +108,9 @@
   lenInput.addEventListener('input', ()=>{ segmentCount = parseInt(lenInput.value,10); lenLabel.textContent = segmentCount; resetSnake(); });
   spdInput.addEventListener('input', ()=>{ speed = parseFloat(spdInput.value); spdLabel.textContent = speed; });
 
-  const pointer = { x: innerWidth/2, y: innerHeight/2, active: false };
+  // Pointer global
+  window.pointer = { x: innerWidth/2, y: innerHeight/2, active: false };
+  const pointer = window.pointer;
 
   let segments = [];
   function resetSnake(){
@@ -242,44 +244,30 @@
 })();
 </script>
 
-<!-- Tambahkan sebelum </body> -->
+<!-- TensorFlow.js + Handpose -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl/dist/tf-backend-webgl.min.js"></script>
 
 <script>
   (async () => {
     const video = document.getElementById('video');
-
-    // Pastikan kamera sudah jalan
     await new Promise(r => video.onloadeddata = r);
-
-    // Load model Handpose
     const model = await handpose.load();
 
     async function detectHand() {
       const predictions = await model.estimateHands(video, true);
-
       if (predictions.length > 0) {
-        // Ambil titik ujung telunjuk (index finger tip = keypoint ke-8)
-        const [x, y] = predictions[0].landmarks[8];
-
-        // Video di setengah layar atas → skala ke tinggi layar penuh
-        const videoWidth = video.videoWidth;
-        const videoHeight = video.videoHeight;
-
-        const scaleX = innerWidth / videoWidth;
-        const scaleY = (innerHeight * 0.5) / videoHeight;
-
-        pointer.x = x * scaleX;
-        pointer.y = y * scaleY;
-        pointer.active = true;
+        const [x, y] = predictions[0].landmarks[8]; // ujung telunjuk
+        const scaleX = innerWidth / video.videoWidth;
+        const scaleY = (innerHeight * 0.5) / video.videoHeight;
+        window.pointer.x = x * scaleX;
+        window.pointer.y = y * scaleY;
+        window.pointer.active = true;
       } else {
-        pointer.active = false;
+        window.pointer.active = false;
       }
-
       requestAnimationFrame(detectHand);
     }
 
