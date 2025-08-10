@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
-  <title>Ular Ulat Ikuti Jari dengan Handpose TFJS</title>
+  <title>Ular Ulat Sentuh + Kamera</title>
   <style>
     html,body {
       height:100%;
@@ -23,7 +23,6 @@
       object-fit: cover;
       z-index: 0;
       background: #000;
-      transform: scaleX(-1); /* Mirror supaya gerakan tangan natural */
     }
     canvas {
       position: absolute;
@@ -70,196 +69,224 @@
     <input id="spd" type="range" min="1" max="30" value="8">
   </div>
 
-  <div class="hint">Gerakkan ujung telunjukmu di kamera, ular akan mengikutinya!</div>
+  <div class="hint">Sentuh/klik layar untuk menggerakkan ular ulat</div>
 
-<script type="module">
-import * as handPoseDetection from 'https://cdn.jsdelivr.net/npm/@tensorflow-models/hand-pose-detection@0.0.7/dist/hand-pose-detection.esm.js';
-import * as tf from 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@4.4.0/dist/tf-core.min.js';
-import '@tensorflow/tfjs-backend-webgl';
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/hand-pose-detection"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
 
-(async () => {
-  // Setup kamera
-  const video = document.getElementById('video');
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
-    video.srcObject = stream;
-  } catch(e) {
-    alert('Tidak bisa mengakses kamera: ' + e.message);
-    return;
-  }
-
-  await new Promise(r => video.onloadeddata = r);
-
-  // Setup canvas dan skala
-  const canvas = document.getElementById('c');
-  const ctx = canvas.getContext('2d', { alpha: true });
-
-  function resize() {
-    const DPR = window.devicePixelRatio || 1;
-    canvas.width = window.innerWidth * DPR;
-    canvas.height = window.innerHeight * DPR;
-    canvas.style.width = window.innerWidth + 'px';
-    canvas.style.height = window.innerHeight + 'px';
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  }
-  window.addEventListener('resize', resize);
-  resize();
-
-  // Load model handpose dari MediaPipe
-  const model = handPoseDetection.SupportedModels.MediaPipeHands;
-  const detectorConfig = {
-    runtime: 'tfjs',
-    modelType: 'full',
-    maxHands: 1,
-  };
-  const detector = await handPoseDetection.createDetector(model, detectorConfig);
-
-  // Ular setup
-  const lenInput = document.getElementById('len');
-  const spdInput = document.getElementById('spd');
-  const lenLabel = document.getElementById('lenLabel');
-  const spdLabel = document.getElementById('spdLabel');
-
-  let segmentCount = parseInt(lenInput.value, 10);
-  let speed = parseFloat(spdInput.value);
-
-  lenInput.oninput = () => {
-    segmentCount = parseInt(lenInput.value, 10);
-    lenLabel.textContent = segmentCount;
-    resetSnake();
-  };
-  spdInput.oninput = () => {
-    speed = parseFloat(spdInput.value);
-    spdLabel.textContent = speed;
-  };
-
-  const pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2, active: false };
-
-  let segments = [];
-  function resetSnake() {
-    segments = [];
-    const startX = window.innerWidth / 2;
-    const startY = window.innerHeight / 2;
-    for (let i = 0; i < segmentCount; i++) {
-      segments.push({ x: startX - i * 6, y: startY });
+  <script>
+  (async () => {
+    const video = document.getElementById('video');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      video.srcObject = stream;
+      await new Promise(r => video.onloadeddata = r);
+    } catch (err) {
+      console.error("Gagal mengakses kamera:", err);
+      return;
     }
-  }
-  resetSnake();
 
-  function lerp(a, b, t) {
-    return a + (b - a) * t;
-  }
+    const handposeDetection = window.handPoseDetection || window.handposeDetection;
+    const model = handposeDetection.SupportedModels.MediaPipeHands;
+    const detectorConfig = {
+      runtime: 'mediapipe',
+      modelType: 'full',
+      solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/hands' // pastikan ini ada agar mediapipe berfungsi
+    };
+    const detector = await handposeDetection.createDetector(model, detectorConfig);
 
-  let lastTime = performance.now();
-  let footPhase = 0;
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d', { alpha: true });
 
-  async function detectHandsAndAnimate() {
-    const now = performance.now();
-    const dt = Math.min(40, now - lastTime) / 16.6667;
-    lastTime = now;
-    footPhase += dt * 0.3;
+    let DPR = window.devicePixelRatio || 1;
+    function resize(){
+      DPR = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(window.innerWidth * DPR);
+      canvas.height = Math.floor(window.innerHeight * DPR);
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+    window.addEventListener('resize', resize, { passive: true });
+    resize();
 
-    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    const lenInput = document.getElementById('len');
+    const spdInput = document.getElementById('spd');
+    const lenLabel = document.getElementById('lenLabel');
+    const spdLabel = document.getElementById('spdLabel');
 
-    // Deteksi tangan
-    const hands = await detector.estimateHands(video, { flipHorizontal: true });
+    let segmentCount = parseInt(lenInput.value,10);
+    let speed = parseFloat(spdInput.value);
 
-    if (hands.length > 0) {
-      // Landmark 8 adalah ujung jari telunjuk
-      const keypoint = hands[0].keypoints.find(k => k.name === 'index_finger_tip');
-      if (keypoint) {
-        pointer.x = keypoint.x;
-        pointer.y = keypoint.y;
-        pointer.active = true;
+    lenInput.addEventListener('input', () => {
+      segmentCount = parseInt(lenInput.value,10);
+      lenLabel.textContent = segmentCount;
+      resetSnake();
+    });
+    spdInput.addEventListener('input', () => {
+      speed = parseFloat(spdInput.value);
+      spdLabel.textContent = speed;
+    });
+
+    const pointer = { x: window.innerWidth/2, y: window.innerHeight/2, active: false };
+
+    let segments = [];
+    function resetSnake(){
+      segments = [];
+      const startX = window.innerWidth/2;
+      const startY = window.innerHeight/2;
+      for(let i=0; i<segmentCount; i++){
+        segments.push({ x: startX - i*6, y: startY });
       }
-    } else {
-      pointer.active = false;
+    }
+    resetSnake();
+
+    function setPointerFromEvent(e){
+      e.preventDefault && e.preventDefault();
+      let clientX, clientY;
+      if(e.touches && e.touches.length){
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      } else if(e.changedTouches && e.changedTouches.length){
+        clientX = e.changedTouches[0].clientX;
+        clientY = e.changedTouches[0].clientY;
+      } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      }
+      pointer.x = clientX;
+      pointer.y = clientY;
+      pointer.active = true;
     }
 
-    // Update posisi kepala ular
-    if (pointer.active) {
-      const head = segments[0];
-      const dx = pointer.x - head.x;
-      const dy = pointer.y - head.y;
-      const dist = Math.hypot(dx, dy) || 1;
-      const maxStep = speed * dt;
-      const step = Math.min(maxStep, dist);
-      head.x += (dx / dist) * step;
-      head.y += (dy / dist) * step;
-    } else {
-      // Jika tidak ada tangan, ular kembali ke tengah
-      const head = segments[0];
-      head.x = lerp(head.x, window.innerWidth / 2, 0.01 * dt);
-      head.y = lerp(head.y, window.innerHeight / 2, 0.01 * dt);
+    // Event manual kontrol pointer (sentuh/mouse)
+    canvas.addEventListener('mousedown', setPointerFromEvent, { passive: false });
+    canvas.addEventListener('mousemove', (e) => { if(e.buttons) setPointerFromEvent(e); }, { passive: false });
+    window.addEventListener('mouseup', ()=>{ pointer.active = false; }, { passive: true });
+
+    canvas.addEventListener('touchstart', setPointerFromEvent, { passive: false });
+    canvas.addEventListener('touchmove', setPointerFromEvent, { passive: false });
+    canvas.addEventListener('touchend', ()=>{ pointer.active = false; }, { passive: true });
+    canvas.addEventListener('touchcancel', ()=>{ pointer.active = false; }, { passive: true });
+
+    function lerp(a,b,t){ return a + (b - a) * t; }
+
+    let lastTime = performance.now();
+    let footPhase = 0;
+
+    async function detectHand(){
+      const hands = await detector.estimateHands(video);
+      if(hands.length > 0){
+        // Landmark ujung jari telunjuk (keypoint 8)
+        const keypoint = hands[0].keypoints.find(k => k.name === "index_finger_tip") || hands[0].keypoints[8];
+        const x = keypoint.x;
+        const y = keypoint.y;
+
+        const videoWidth = video.videoWidth;
+        const videoHeight = video.videoHeight;
+        const scaleX = window.innerWidth / videoWidth;
+        const scaleY = window.innerHeight / videoHeight;
+
+        pointer.x = x * scaleX;
+        pointer.y = y * scaleY;
+        pointer.active = true;
+      } else {
+        pointer.active = false;
+      }
+      requestAnimationFrame(detectHand);
     }
 
-    // Update segmen berikutnya mengikuti segmen sebelumnya
-    const followDist = 8;
-    for (let i = 1; i < segmentCount; i++) {
-      const prev = segments[i - 1];
-      const cur = segments[i];
-      const dx = prev.x - cur.x;
-      const dy = prev.y - cur.y;
-      const dist = Math.hypot(dx, dy) || 1;
-      const targetX = prev.x - (dx / dist) * followDist;
-      const targetY = prev.y - (dy / dist) * followDist;
-      cur.x = lerp(cur.x, targetX, 0.4 * dt);
-      cur.y = lerp(cur.y, targetY, 0.4 * dt);
-    }
+    detectHand();
 
-    // Jaga panjang segmen
-    if (segments.length > segmentCount) segments.length = segmentCount;
-    while (segments.length < segmentCount) {
-      const last = segments[segments.length - 1] || { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-      segments.push({ x: last.x, y: last.y });
-    }
+    function frame(now){
+      const dt = Math.min(40, now - lastTime) / 16.6667;
+      lastTime = now;
+      footPhase += dt * 0.3;
 
-    // Gambar kaki ular
-    ctx.lineWidth = 2;
-    for (let i = 0; i < segments.length; i++) {
-      const p = segments[i];
-      const t = i / segments.length;
-      const size = lerp(14, 4, t);
-      const angle = Math.sin(footPhase * 10 + i * 0.5) * 0.4;
-      const legLen = size * 1.2;
-      ctx.strokeStyle = 'hsl(160 60% 60%)';
-      ctx.beginPath();
-      ctx.moveTo(p.x + Math.cos(angle + Math.PI / 2) * size, p.y + Math.sin(angle + Math.PI / 2) * size);
-      ctx.lineTo(p.x + Math.cos(angle + Math.PI / 2) * (size + legLen), p.y + Math.sin(angle + Math.PI / 2) * (size + legLen));
-      ctx.moveTo(p.x + Math.cos(angle - Math.PI / 2) * size, p.y + Math.sin(angle - Math.PI / 2) * size);
-      ctx.lineTo(p.x + Math.cos(angle - Math.PI / 2) * (size + legLen), p.y + Math.sin(angle - Math.PI / 2) * (size + legLen));
-      ctx.stroke();
-    }
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-    // Gambar badan ular
-    for (let i = segments.length - 1; i >= 0; i--) {
-      const p = segments[i];
-      const t = i / Math.max(1, segments.length - 1);
-      const size = lerp(14, 4, t);
-      const hue = lerp(140, 200, t);
-      const light = lerp(60, 35, t);
-      ctx.beginPath();
-      ctx.fillStyle = `hsl(${hue} 60% ${light}%)`;
-      ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
-      ctx.fill();
-    }
+      if(pointer.active){
+        const head = segments[0];
+        const dx = pointer.x - head.x;
+        const dy = pointer.y - head.y;
+        const dist = Math.hypot(dx, dy) || 1;
+        const maxStep = speed * dt;
+        const step = Math.min(maxStep, dist);
+        head.x += dx / dist * step;
+        head.y += dy / dist * step;
+      } else {
+        const head = segments[0];
+        head.x = lerp(head.x, window.innerWidth/2, 0.01*dt);
+        head.y = lerp(head.y, window.innerHeight/2, 0.01*dt);
+      }
 
-    // Gambar lingkaran sentuhan di ujung telunjuk
-    if (pointer.active) {
-      const pulse = 5 * Math.sin(now / 200) + 20;
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+      const followDist = 8;
+      for(let i=1; i<segmentCount; i++){
+        const prev = segments[i-1];
+        const cur = segments[i];
+        const dx = prev.x - cur.x;
+        const dy = prev.y - cur.y;
+        const d = Math.hypot(dx, dy) || 1;
+        const targetX = prev.x - (dx / d) * followDist;
+        const targetY = prev.y - (dy / d) * followDist;
+        cur.x = lerp(cur.x, targetX, 0.4 * dt);
+        cur.y = lerp(cur.y, targetY, 0.4 * dt);
+      }
+
+      if(segments.length > segmentCount) segments.length = segmentCount;
+      while(segments.length < segmentCount){
+        const last = segments[segments.length-1] || { x: window.innerWidth/2, y: window.innerHeight/2 };
+        segments.push({ x: last.x, y: last.y });
+      }
+
+      // Gambar kaki-kaki ular
       ctx.lineWidth = 2;
-      ctx.arc(pointer.x, pointer.y, pulse, 0, Math.PI * 2);
-      ctx.stroke();
+      for(let i=0; i<segments.length; i++){
+        const p = segments[i];
+        const t = i / segments.length;
+        const size = lerp(14, 4, t);
+        const angle = Math.sin(footPhase * 10 + i * 0.5) * 0.4;
+        const legLen = size * 1.2;
+
+        ctx.strokeStyle = 'hsl(160 60% 60%)';
+        ctx.beginPath();
+        ctx.moveTo(p.x + Math.cos(angle + Math.PI/2) * size, p.y + Math.sin(angle + Math.PI/2) * size);
+        ctx.lineTo(p.x + Math.cos(angle + Math.PI/2) * (size + legLen), p.y + Math.sin(angle + Math.PI/2) * (size + legLen));
+        ctx.moveTo(p.x + Math.cos(angle - Math.PI/2) * size, p.y + Math.sin(angle - Math.PI/2) * size);
+        ctx.lineTo(p.x + Math.cos(angle - Math.PI/2) * (size + legLen), p.y + Math.sin(angle - Math.PI/2) * (size + legLen));
+        ctx.stroke();
+      }
+
+      // Gambar badan ular
+      for(let i = segments.length-1; i >= 0; i--){
+        const p = segments[i];
+        const t = i / Math.max(1, segments.length - 1);
+        const size = lerp(14, 4, t);
+        const hue = lerp(140, 200, t);
+        const light = lerp(60, 35, t);
+        ctx.beginPath();
+        ctx.fillStyle = `hsl(${hue} 60% ${light}%)`;
+        ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Gambar lingkaran sentuhan
+      if(pointer.active){
+        const pulse = 5 * Math.sin(now / 200) + 20;
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+        ctx.lineWidth = 2;
+        ctx.arc(pointer.x, pointer.y, pulse, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(frame);
     }
-
-    requestAnimationFrame(detectHandsAndAnimate);
-  }
-
-  detectHandsAndAnimate();
-})();
-</script>
-
+    requestAnimationFrame(frame);
+  })();
+  </script>
 </body>
 </html>
