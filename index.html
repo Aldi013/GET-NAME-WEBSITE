@@ -191,8 +191,8 @@
         const scaleX = window.innerWidth / videoWidth;
         const scaleY = window.innerHeight / videoHeight;
 
-        // Mirror posisi X supaya sesuai video yang di mirror dengan CSS
-        pointer.x = window.innerWidth - (x * scaleX);
+        // Update pointer posisi mengikuti ujung jari telunjuk
+        pointer.x = x * scaleX;
         pointer.y = y * scaleY;
         pointer.active = true;
       } else {
