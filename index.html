@@ -178,27 +178,67 @@
     let lastTime = performance.now();
     let footPhase = 0;
 
-    async function detectHand(){
+    // Tambahkan ini di awal (setelah deklarasi pointer)
+    let indexFingerPos = null; // posisi jari telunjuk landmark 8
+    const threshold = 50; // jarak maksimal (px) agar sentuhan dianggap valid
+    
+    // Modifikasi detectHand agar simpan posisi jari telunjuk ke indexFingerPos
+    async function detectHand() {
       const hands = await detector.estimateHands(video);
-      if(hands.length > 0){
-        // Landmark ujung jari telunjuk (keypoint 8)
+      if (hands.length > 0) {
         const keypoint = hands[0].keypoints.find(k => k.name === "index_finger_tip") || hands[0].keypoints[8];
         const x = keypoint.x;
         const y = keypoint.y;
-
         const videoWidth = video.videoWidth;
         const videoHeight = video.videoHeight;
         const scaleX = window.innerWidth / videoWidth;
         const scaleY = window.innerHeight / videoHeight;
-
-        // Update pointer posisi mengikuti ujung jari telunjuk
-        pointer.x = x * scaleX;
-        pointer.y = y * scaleY;
+        // Simpan posisi jari telunjuk
+        indexFingerPos = { x: x * scaleX, y: y * scaleY };
+    
+        // Update pointer posisi mengikuti jari telunjuk
+        pointer.x = indexFingerPos.x;
+        pointer.y = indexFingerPos.y;
         pointer.active = true;
       } else {
         pointer.active = false;
+        indexFingerPos = null;
       }
       requestAnimationFrame(detectHand);
+    }
+    
+    function setPointerFromEvent(e) {
+      e.preventDefault && e.preventDefault();
+      let clientX, clientY;
+      if (e.touches && e.touches.length) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      } else if (e.changedTouches && e.changedTouches.length) {
+        clientX = e.changedTouches[0].clientX;
+        clientY = e.changedTouches[0].clientY;
+      } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      }
+      if (indexFingerPos) {
+        const dist = Math.hypot(clientX - indexFingerPos.x, clientY - indexFingerPos.y);
+        if (dist <= threshold) {
+          pointer.x = clientX;
+          pointer.y = clientY;
+          pointer.active = true;
+        } else {
+          // sentuhan jauh dari jari telunjuk, jangan matikan pointer aktif
+          // cukup abaikan sentuhan ini tanpa mengubah pointer.active
+          // atau kamu bisa pilih mengurangi pointer.active hanya jika sentuhan sudah selesai
+        }
+      } else {
+        // Jika jari telunjuk tidak terdeteksi, kamu bisa izinkan sentuhan manual menggerakkan ular
+        // atau abaikan seperti sekarang
+        // Saya sarankan izinkan agar ular tetap bisa digerakkan:
+        pointer.x = clientX;
+        pointer.y = clientY;
+        pointer.active = true;
+      }
     }
     detectHand();
 
