@@ -23,7 +23,6 @@
       object-fit: cover;
       z-index: 0;
       background: #000;
-      transform: scaleX(-1); /* mirror camera */
     }
     canvas {
       position: absolute;
@@ -95,7 +94,7 @@
     const detectorConfig = {
       runtime: 'mediapipe',
       modelType: 'full',
-      solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/hands'
+      solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/hands' // pastikan ini ada agar mediapipe berfungsi
     };
     const detector = await handposeDetection.createDetector(model, detectorConfig);
 
@@ -178,22 +177,20 @@
     let lastTime = performance.now();
     let footPhase = 0;
 
-    async function detectHand() {
+    async function detectHand(){
       const hands = await detector.estimateHands(video);
-      if (hands.length > 0) {
+      if(hands.length > 0){
+        // Landmark ujung jari telunjuk (keypoint 8)
         const keypoint = hands[0].keypoints.find(k => k.name === "index_finger_tip") || hands[0].keypoints[8];
         const x = keypoint.x;
         const y = keypoint.y;
-    
+
         const videoWidth = video.videoWidth;
         const videoHeight = video.videoHeight;
         const scaleX = window.innerWidth / videoWidth;
         const scaleY = window.innerHeight / videoHeight;
-    
-        // Flip horizontal posisi X karena video mirror
-        const flippedX = window.innerWidth - (x * scaleX);
-    
-        pointer.x = flippedX;
+
+        pointer.x = x * scaleX;
         pointer.y = y * scaleY;
         pointer.active = true;
       } else {
@@ -201,6 +198,7 @@
       }
       requestAnimationFrame(detectHand);
     }
+
     detectHand();
 
     function frame(now){
