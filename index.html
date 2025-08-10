@@ -23,6 +23,7 @@
       object-fit: cover;
       z-index: 0;
       background: #000;
+      transform: scaleX(-1);
     }
     canvas {
       position: absolute;
@@ -177,20 +178,20 @@
     let lastTime = performance.now();
     let footPhase = 0;
 
-    async function detectHand(){
+    async function detectHand() {
       const hands = await detector.estimateHands(video);
-      if(hands.length > 0){
-        // Landmark ujung jari telunjuk (keypoint 8)
+      if (hands.length > 0) {
         const keypoint = hands[0].keypoints.find(k => k.name === "index_finger_tip") || hands[0].keypoints[8];
         const x = keypoint.x;
         const y = keypoint.y;
-
+    
         const videoWidth = video.videoWidth;
         const videoHeight = video.videoHeight;
         const scaleX = window.innerWidth / videoWidth;
         const scaleY = window.innerHeight / videoHeight;
-
-        pointer.x = x * scaleX;
+    
+        // Flip X supaya konsisten dengan video mirror
+        pointer.x = window.innerWidth - (x * scaleX);
         pointer.y = y * scaleY;
         pointer.active = true;
       } else {
